@@ -39,12 +39,19 @@ mkdir -p "$BACKUP_DIR"
 
 # Run the backup command using Docker
 # change docker postgres image tag by your requirements
-
+#TODO: complete this section work for mysql database
 docker run --rm \
   --network "$NETWORK" \
   --link "$DB_CONTAINER":postgres \
   -e PGPASSWORD="$DB_PASSWORD" \
   -v "$BACKUP_DIR:/var/db-backup" \
   postgres:16-alpine \
-  sh -c "pg_dump -h postgres -U $DB_USER -d $DB_NAME > /var/db-backup/backup-$DATE.sql"
+  sh -c "pg_dump -h postgres -U $DB_USER -d $DB_NAME > /var/db-backup/backup-$DB_NAME-$DATE.sql"
 
+# remove backup from 7 days ago
+if [ $? -eq 0 ]; then
+     find "$BACKUP_DIR"  -mtime +7 -exec rm -rf {} \;
+     echo "Local backup file since 7 day deleted successfully."
+else
+    echo "Error occurred during upload. Local backup file was not deleted."
+fi
